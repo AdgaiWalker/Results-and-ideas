@@ -1,0 +1,89 @@
+---
+import SearchModal from './SearchModal.astro';
+
+const navItems = [
+  { label: '港口', href: '/' },
+  { label: '航海日志', href: '/log' },
+  { label: '指南针', href: '/compass' },
+];
+const currentPath = Astro.url.pathname;
+---
+<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="main-nav">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="font-heading text-xl text-parchment hover:text-gold transition-colors no-underline">
+      Walker
+    </a>
+
+    <!-- 桌面端导航 -->
+    <div class="hidden md:flex items-center gap-8">
+      {navItems.map(item => (
+        <a
+          href={item.href}
+          class:list={[
+            'font-heading text-sm tracking-wider uppercase no-underline transition-colors duration-200',
+            currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
+              ? 'text-gold'
+              : 'text-mist-light hover:text-parchment',
+          ]}
+        >
+          {item.label}
+        </a>
+      ))}
+      <SearchModal />
+    </div>
+
+    <!-- 移动端 -->
+    <div class="md:hidden flex items-center gap-3">
+      <SearchModal />
+      <button
+        class="text-parchment p-2"
+        id="menu-toggle"
+        aria-label="打开菜单"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 移动端菜单 -->
+  <div class="md:hidden hidden bg-sea-deep/95 backdrop-blur-md" id="mobile-menu">
+    <div class="px-6 py-4 flex flex-col gap-4">
+      {navItems.map(item => (
+        <a
+          href={item.href}
+          class:list={[
+            'font-heading text-base tracking-wider uppercase no-underline transition-colors duration-200',
+            currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
+              ? 'text-gold'
+              : 'text-mist-light hover:text-parchment',
+          ]}
+        >
+          {item.label}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<script>
+  const nav = document.getElementById('main-nav');
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+
+  window.addEventListener('scroll', () => {
+    if (!nav) return;
+    if (window.scrollY > 80) {
+      nav.classList.add('bg-sea-deep/90', 'backdrop-blur-md');
+    } else {
+      nav.classList.remove('bg-sea-deep/90', 'backdrop-blur-md');
+    }
+  });
+
+  toggle?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+  });
+</script>

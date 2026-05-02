@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  /* 海洋深蓝配色 */
+  --color-sea-deep: #0a1628;
+  --color-sea-mid: #132040;
+  --color-sea-light: #1a2d52;
+
+  /* 金色 */
+  --color-gold: #d4af37;
+  --color-gold-dim: #a88a2a;
+  --color-gold-glow: #e8c84a;
+
+  /* 迷雾灰 */
+  --color-mist: #4a5568;
+  --color-mist-light: #9ca3af;
+
+  /* 羊皮纸色 */
+  --color-parchment: #f0ead6;
+  --color-parchment-dim: #c9c3b1;
+
+  /* 字体 */
+  --font-heading: Sora, system-ui, sans-serif;
+  --font-body: "Noto Sans SC", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sea-deep text-parchment font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+
+  a {
+    @apply text-gold hover:text-gold-glow transition-colors duration-200;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-parchment;
+  }
+}
+
+/* 水波过渡动画 */
+@keyframes ripple-in {
+  from {
+    clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  }
+  to {
+    clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+  }
+}
+
+/* 卡片进入视口动画 */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 无障碍：减弱动效 */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

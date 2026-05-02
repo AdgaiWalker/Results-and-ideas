@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import TagFilter from '../../components/TagFilter.astro';
+import TraceCard from '../../components/TraceCard.astro';
+import { getCollection } from 'astro:content';
+
+const activeTag = Astro.url.searchParams.get('tag') ?? undefined;
+
+let allLogs = await getCollection('log', ({ data }) => data.published);
+
+if (activeTag) {
+  allLogs = allLogs.filter(entry => entry.data.tags.includes(activeTag));
+}
+
+allLogs.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const tagCount = new Map<string, number>();
+allLogs.forEach(entry => {
+  entry.data.tags.forEach(tag => {
+    tagCount.set(tag, (tagCount.get(tag) ?? 0) + 1);
+  });
+});
+const allTags = [...tagCount.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .map(([tag]) => tag);
+
+// 按时间段分组
+interface TimePeriod {
+  label: string;
+  entries: typeof allLogs;
+}
+
+function getPeriodLabel(d: Date): string {
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  const decade = Math.ceil(d.getDate() / 10);
+  const part = decade <= 1 ? '上旬' : decade <= 2 ? '中旬' : '下旬';
+  return `${year}年${month}月${part}`;
+}
+
+const periods: TimePeriod[] = [];
+let currentLabel = '';
+for (const entry of allLogs) {
+  const label = getPeriodLabel(entry.data.date);
+  if (label !== currentLabel) {
+    periods.push({ label, entries: [] });
+    currentLabel = label;
+  }
+  periods[periods.length - 1].entries.push(entry);
+}
+---
+<Base title={activeTag ? `${activeTag} — Walker 航海日志` : '航海日志 — Walker'}>
+  <div class="relative">
+    <!-- 深度渐变背景 -->
+    <div class="fixed inset-0 pointer-events-none z-0"
+      style="background: linear-gradient(180deg, #132040 0%, #0a1628 30%, #060e1a 100%);">
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-6 pt-28 pb-20">
+      <!-- 页面标题 -->
+      <div class="mb-12">
+        <h1 class="font-heading text-4xl md:text-5xl text-parchment tracking-wide">航海日志</h1>
+        <p class="mt-3 text-parchment/30 text-sm font-body">
+          {allLogs.length} 条记录，随时间漂流
+        </p>
+        <div class="mt-4 w-16 h-px bg-gold/30"></div>
+      </div>
+
+      <!-- 星座式标签导航 -->
+      <TagFilter tags={allTags} activeTag={activeTag} />
+
+      <!-- 时间海域 -->
+      {periods.length === 0 ? (
+        <p class="text-mist-light text-center py-20">这片海域暂时没有记录。</p>
+      ) : (
+        periods.map(period => (
+          <section class="mb-16">
+            <!-- 时间段标记 -->
+            <div class="flex items-center gap-4 mb-8">
+              <div class="w-1.5 h-1.5 rounded-full bg-gold/40"></div>
+              <h2 class="font-heading text-xs tracking-[0.3em] uppercase text-gold/40">
+                {period.label}
+              </h2>
+              <div class="flex-1 h-px bg-gradient-to-r from-gold/10 to-transparent"></div>
+            </div>
+
+            <!-- 瀑布流 -->
+            <div class="columns-1 md:columns-2 lg:columns-3 gap-6">
+              {period.entries.map(entry => (
+                <TraceCard
+                  title={entry.data.title}
+                  date={entry.data.date}
+                  tags={entry.data.tags}
+                  type={entry.data.type}
+                  slug={entry.id}
+                  cover={entry.data.cover}
+                  excerpt={entry.body ? entry.body.replace(/^import\s+.*$/gm, '').replace(/<[^>]+>/g, '').replace(/[#*_`\[\]()>|]/g, '').trim().slice(0, 150) + '...' : undefined}
+                />
+              ))}
+            </div>
+          </section>
+        ))
+      )}
+
+      {allLogs.length > 12 && (
+        <div class="mt-16 text-center">
+          <a
+            href="#top"
+            class="inline-block text-mist/40 text-xs font-heading tracking-wider hover:text-gold/60 transition-colors no-underline"
+          >
+            ↑ 回到水面
+          </a>
+        </div>
+      )}
+    </div>
+  </div>
+  <script src="../../scripts/scroll-fade.ts"></script>
+</Base>

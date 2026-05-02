@@ -1,0 +1,44 @@
+---
+interface Props {
+  tags: string[];
+  activeTag?: string;
+}
+
+const { tags, activeTag } = Astro.props;
+---
+<div class="mb-16 relative">
+  <div class="flex flex-wrap gap-3 items-center justify-center">
+    <a
+      href="/log"
+      class:list={[
+        'no-underline font-heading text-sm tracking-wider px-4 py-1.5 rounded-full transition-all duration-300',
+        !activeTag
+          ? 'bg-gold/20 text-gold shadow-sm shadow-gold/20'
+          : 'text-mist-light/50 hover:text-parchment/70',
+      ]}
+    >
+      全部海域
+    </a>
+    <span class="text-mist/20 select-none">·</span>
+    {tags.map((tag, i) => (
+      <>
+        <a
+          href={`/log?tag=${encodeURIComponent(tag)}`}
+          class:list={[
+            'no-underline font-heading text-sm tracking-wider px-3 py-1.5 rounded-full transition-all duration-300',
+            activeTag === tag
+              ? tag === '哲学'
+                ? 'bg-gold text-sea-deep shadow-sm shadow-gold/30'
+                : 'bg-parchment/10 text-parchment shadow-sm shadow-parchment/10'
+              : tag === '哲学'
+                ? 'text-gold/50 hover:text-gold hover:bg-gold/10'
+                : 'text-mist-light/40 hover:text-parchment/60 hover:bg-sea-light/20',
+          ]}
+        >
+          {tag}
+        </a>
+        {i < tags.length - 1 && <span class="text-mist/10 select-none">·</span>}
+      </>
+    ))}
+  </div>
+</div>
