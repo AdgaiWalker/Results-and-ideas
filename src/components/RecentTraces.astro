@@ -1,36 +1,72 @@
 ---
-import TraceCard from './TraceCard.astro';
-import { getCollection } from 'astro:content';
+/**
+ * RecentTraces — 首页最近日志 (Lvyovo 风格的单篇"最新文章"卡片)
+ */
+import { FORMAT_LABELS } from '../utils/formats';
 
-const allLogs = await getCollection('log', ({ data }) => data.published);
-const recentLogs = allLogs
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, 6);
+interface LogEntry {
+  id: string;
+  data: {
+    title: string;
+    date: Date;
+    tags: string[];
+    type: 'article' | 'photo' | 'thought' | 'project' | 'dialogue';
+    domain: string;
+    cover?: string;
+  };
+  body?: string;
+}
+
+interface Props {
+  logs: LogEntry[];
+}
+
+const { logs } = Astro.props;
+const latest = logs[0]; // 只取最新的一篇
+
+const formatDate = (d: Date) =>
+  d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+let excerpt = '';
+if (latest && latest.body) {
+  excerpt = latest.body
+    .replace(/<[^>]+>/g, '')
+    .replace(/[#*_\`\[\]()>|]/g, '')
+    .trim()
+    .slice(0, 30);
+}
 ---
-<section class="max-w-5xl mx-auto px-6 py-20">
-  <div class="flex items-center gap-4 mb-10">
-    <h2 class="font-heading text-2xl text-parchment tracking-wide">最近痕迹</h2>
-    <div class="flex-1 h-px bg-gradient-to-r from-gold/20 to-transparent"></div>
+
+<div class="panel-glass p-5 flex flex-col h-full group">
+  <div class="text-[11px] font-mono text-parchment-dim uppercase tracking-widest mb-3">
+    最新文章
   </div>
-  <div class="columns-1 md:columns-2 lg:columns-3 gap-6">
-    {recentLogs.map(entry => (
-      <TraceCard
-        title={entry.data.title}
-        date={entry.data.date}
-        tags={entry.data.tags}
-        type={entry.data.type}
-        slug={entry.id}
-        cover={entry.data.cover}
-        excerpt={entry.body ? entry.body.replace(/^import\s+.*$/gm, '').replace(/<[^>]+>/g, '').replace(/[#*_`\[\]()>|]/g, '').trim().slice(0, 150) + '...' : undefined}
-      />
-    ))}
-  </div>
-  <div class="mt-12 text-center">
-    <a
-      href="/log"
-      class="inline-block font-heading text-sm text-gold/60 hover:text-gold transition-colors tracking-wider no-underline"
-    >
-      进入全部日志 →
+
+  {latest ? (
+    <a href={`/log/${latest.id}`} class="flex items-start gap-3 no-underline">
+      <!-- 左侧略缩图 / 图标占位 -->
+      <div class="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-parchment/5 border border-parchment/10 flex items-center justify-center relative shadow-sm">
+        {latest.data.cover ? (
+          <img src={latest.data.cover} alt={latest.data.title} class="w-full h-full object-cover" />
+        ) : (
+          <iconify-icon icon="lucide:file-text" width="20" height="20" class="text-parchment-dim"></iconify-icon>
+        )}
+      </div>
+      
+      <!-- 右侧信息 -->
+      <div class="flex flex-col flex-1 min-w-0">
+        <div class="text-parchment text-[13px] font-heading font-medium leading-snug line-clamp-2 group-hover:text-bio-cyan transition-colors">
+          {latest.data.title}
+        </div>
+        <div class="text-parchment-dim text-[10px] font-body mt-1 line-clamp-1">
+          {excerpt}
+        </div>
+        <div class="text-parchment-dim text-[10px] font-mono mt-2">
+          {formatDate(latest.data.date)}
+        </div>
+      </div>
     </a>
-  </div>
-</section>
+  ) : (
+    <div class="text-parchment-dim text-xs">暂无文章</div>
+  )}
+</div>

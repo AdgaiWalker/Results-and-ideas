@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Navigation from '../components/Navigation.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -6,34 +7,162 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  pureMode?: boolean;
+  theme?: 'nature' | 'blue' | 'emerald' | 'charcoal';
 }
 
 const {
-  title = 'Walker',
-  description = '行过万里水路，记录每一次停靠',
+  title = 'Walker — 行过万里水路',
+  description = 'Walker 的个人航海日志，记录 AI 探索、独立开发与生活点滴。',
+  pureMode = false,
+  theme = 'nature',
 } = Astro.props;
+
+// 不同主题对应的背景渐变色 (浅色毛玻璃风格)
+const themeGradients = {
+  nature: { 
+    from: '#fdfbf7', // 暖白底色
+    via: '#f0f4f2',  // 微透的鼠尾草浅绿
+    to: '#e8ecea',   // 自然灰绿
+    glow1: 'bg-[#b6d0c2]/20', // 极柔和的莫兰迪绿晕
+    glow2: 'bg-[#eaddc5]/25'  // 极柔和的暖沙色晕
+  },
+  blue: { 
+    from: '#f0f9ff',
+    via: '#e0f2fe',
+    to: '#f8fafc',
+    glow1: 'bg-emerald-300/30',
+    glow2: 'bg-yellow-300/25'
+  },
+  emerald: { from: '#f0fdf4', via: '#d1fae5', to: '#a7f3d0', glow1: 'bg-emerald-200/40', glow2: 'bg-teal-200/40' },
+  charcoal: { from: '#f8fafc', via: '#f1f5f9', to: '#e2e8f0', glow1: 'bg-slate-200/40', glow2: 'bg-gray-200/40' }
+};
+
+
+const gradient = themeGradients[theme];
+const isHome = Astro.url.pathname === '/';
 ---
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="zh-CN">
+
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Sora:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <meta name="description" content={description} />
+    
+    <!-- 引入外部字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <ClientRouter />
+    
+    <!-- 传递 pureMode 给环境脚本 -->
+    <meta name="env-pure-mode" content={pureMode ? "true" : "false"} />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col">
+  <body class:list={["min-h-screen flex flex-col", pureMode ? "bg-[#fdfdfd] reading-mode" : `theme-${theme}`]}>
+    {!pureMode && (
+      <>
+        <!-- 环境背景层 (清新浅色毛玻璃版) -->
+        <div class="fixed inset-0 -z-20 overflow-hidden bg-abyss" aria-hidden="true">
+          <!-- 基础渐变：动态切换 (主蓝色调) -->
+          <div class="absolute inset-0 opacity-[0.4]" style={`background-image: linear-gradient(135deg, ${gradient.from}, ${gradient.via}, ${gradient.to})`}></div>
+          
+          <!-- 温暖的晕影团：蓝底之上，点缀绿色与黄色 -->
+          <div class={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full ${gradient.glow1} blur-[120px] animate-pulse`} style="animation-duration: 14s;"></div>
+          <div class={`absolute bottom-[5%] right-[-10%] w-[65%] h-[65%] rounded-full ${gradient.glow2} blur-[130px] animate-pulse`} style="animation-duration: 19s;"></div>
+        </div>
+
+        <!-- 浅色模式下的微弱气泡/星尘 (可选) -->
+        <canvas id="ambient-particles" class="fixed inset-0 -z-10 pointer-events-none opacity-20" aria-hidden="true"></canvas>
+      </>
+    )}
+
+
+
+
     <Navigation />
-    <main class="flex-1">
-      <slot />
-    </main>
-    <Footer />
+    <div class:list={["flex flex-col flex-1 w-full", isHome ? "" : "lg:pl-64"]}>
+      <main class="flex-1 relative z-10 w-full">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+
+    <!-- 灵动光标 -->
+    <div id="custom-cursor"></div>
+
+    <script>
+      import '../scripts/ambient';
+      import '../scripts/scroll-fade';
+
+      // --- 灵动光标逻辑 ---
+      const cursor = document.getElementById('custom-cursor');
+      let mouseX = 0, mouseY = 0;
+      let cursorX = 0, cursorY = 0;
+
+      if (window.matchMedia("(hover: hover)").matches) {
+        if (cursor) cursor.style.display = 'block';
+        
+        window.addEventListener('mousemove', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        });
+
+        // 平滑跟随
+        const tick = () => {
+          cursorX += (mouseX - cursorX) * 0.2;
+          cursorY += (mouseY - cursorY) * 0.2;
+          if (cursor) {
+            cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+          }
+          requestAnimationFrame(tick);
+        };
+        tick();
+
+        // 吸附交互
+        const interactables = 'a, button, .panel-glass, .group';
+        document.querySelectorAll(interactables).forEach(el => {
+          el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+          el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+        });
+      }
+
+      // --- 3D 磁性卡片逻辑 ---
+      const setupTilt = () => {
+        const cards = document.querySelectorAll('.panel-glass');
+        
+        cards.forEach((card: any) => {
+          card.addEventListener('mousemove', (e: MouseEvent) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // 计算旋转角度 (最大 5 度)
+            const rotateX = ((y - centerY) / centerY) * -5;
+            const rotateY = ((x - centerX) / centerX) * 5;
+            
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+          });
+          
+          card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+          });
+        });
+      };
+
+      // 初始化并适配 Astro View Transitions
+      setupTilt();
+      document.addEventListener('astro:after-swap', setupTilt);
+    </script>
   </body>
 </html>
+

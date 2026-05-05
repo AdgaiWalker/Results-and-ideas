@@ -13,13 +13,13 @@ const { tags, activeTag } = Astro.props;
       class:list={[
         'no-underline font-heading text-sm tracking-wider px-4 py-1.5 rounded-full transition-all duration-300',
         !activeTag
-          ? 'bg-gold/20 text-gold shadow-sm shadow-gold/20'
-          : 'text-mist-light/50 hover:text-parchment/70',
+          ? 'bg-bio-cyan/15 text-bio-cyan border border-bio-cyan/25 shadow-[0_0_8px_rgba(0,229,255,0.1)]'
+          : 'text-parchment/40 hover:text-parchment/70',
       ]}
     >
       全部海域
     </a>
-    <span class="text-mist/20 select-none">·</span>
+    <span class="text-white/[0.06] select-none">·</span>
     {tags.map((tag, i) => (
       <>
         <a
@@ -27,17 +27,13 @@ const { tags, activeTag } = Astro.props;
           class:list={[
             'no-underline font-heading text-sm tracking-wider px-3 py-1.5 rounded-full transition-all duration-300',
             activeTag === tag
-              ? tag === '哲学'
-                ? 'bg-gold text-sea-deep shadow-sm shadow-gold/30'
-                : 'bg-parchment/10 text-parchment shadow-sm shadow-parchment/10'
-              : tag === '哲学'
-                ? 'text-gold/50 hover:text-gold hover:bg-gold/10'
-                : 'text-mist-light/40 hover:text-parchment/60 hover:bg-sea-light/20',
+              ? 'bg-bio-cyan/15 text-bio-cyan border border-bio-cyan/25 shadow-[0_0_8px_rgba(0,229,255,0.1)]'
+              : 'text-parchment/30 hover:text-bio-cyan hover:bg-bio-cyan/10',
           ]}
         >
           {tag}
         </a>
-        {i < tags.length - 1 && <span class="text-mist/10 select-none">·</span>}
+        {i < tags.length - 1 && <span class="text-white/[0.06] select-none">·</span>}
       </>
     ))}
   </div>

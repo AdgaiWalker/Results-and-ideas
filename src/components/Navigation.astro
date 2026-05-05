@@ -1,89 +1,190 @@
 ---
 import SearchModal from './SearchModal.astro';
 
-const navItems = [
-  { label: '港口', href: '/' },
-  { label: '航海日志', href: '/log' },
-  { label: '指南针', href: '/compass' },
+interface NavChild {
+  label: string;
+  href: string;
+}
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: string;
+  children?: NavChild[];
+}
+
+const navItems: NavItem[] = [
+  { label: '首页', href: '/', icon: 'lucide:home' },
+  {
+    label: '日志',
+    href: '/log',
+    icon: 'lucide:book-open',
+    children: [
+      { label: '文章', href: '/log?type=article' },
+      { label: '随想', href: '/log?type=thought' },
+      { label: '照片', href: '/log?type=photo' },
+      { label: '项目', href: '/log?type=project' },
+      { label: '对话', href: '/log?type=dialogue' },
+    ],
+  },
+  { label: 'Ideas', href: '/ideas', icon: 'lucide:lightbulb' },
+  {
+    label: '补给舱',
+    href: '/dock',
+    icon: 'lucide:wrench',
+    children: [
+      { label: '工具', href: '/dock?category=tool' },
+      { label: '技能', href: '/dock?category=skill' },
+      { label: '信息源', href: '/dock?category=info-source' },
+    ],
+  },
+  { label: '作品', href: '/works', icon: 'lucide:radio' },
+  { label: '指南针', href: '/compass', icon: 'lucide:compass' },
+  { label: '关于', href: '/about', icon: 'lucide:user' },
 ];
+
 const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/';
 ---
-<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="main-nav">
-  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-    <a href="/" class="font-heading text-xl text-parchment hover:text-gold transition-colors no-underline">
-      Walker
-    </a>
 
-    <!-- 桌面端导航 -->
-    <div class="hidden md:flex items-center gap-8">
-      {navItems.map(item => (
-        <a
-          href={item.href}
-          class:list={[
-            'font-heading text-sm tracking-wider uppercase no-underline transition-colors duration-200',
-            currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-              ? 'text-gold'
-              : 'text-mist-light hover:text-parchment',
-          ]}
+{isHome ? (
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300" id="main-nav">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3.5 flex items-center justify-between">
+      <a href="/" class="flex items-center font-heading text-xl text-parchment hover:text-bio-cyan transition-colors no-underline">
+        <span class="relative flex h-1.5 w-1.5 mr-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-bio-cyan opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-bio-cyan"></span>
+        </span>
+        Walker
+      </a>
+      <div class="flex items-center">
+        <!-- 首页搜索移至第三栏的按钮 -->
+      </div>
+    </div>
+  </nav>
+) : (
+  <nav class="fixed top-0 left-0 z-50 transition-all duration-300 w-full lg:w-64 lg:bottom-0 lg:border-r lg:border-b-0 border-b border-white/[0.06] backdrop-blur-xl bg-abyss/80 flex flex-col" id="main-nav">
+    <!-- 移动端顶部栏 -->
+    <div class="flex lg:hidden items-center justify-between px-4 py-3 w-full">
+      <a href="/" class="flex items-center font-heading text-lg text-parchment hover:text-bio-cyan transition-colors no-underline">
+        <span class="relative flex h-1.5 w-1.5 mr-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-bio-cyan opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-bio-cyan"></span>
+        </span>
+        Walker
+      </a>
+      <div class="flex items-center gap-3">
+        <SearchModal />
+        <button
+          class="text-parchment/60 hover:text-parchment p-1.5 transition-colors bg-transparent border-none cursor-pointer"
+          id="menu-toggle"
+          aria-label="打开菜单"
         >
-          {item.label}
-        </a>
-      ))}
-      <SearchModal />
+          <iconify-icon icon="lucide:menu" width="22" height="22"></iconify-icon>
+        </button>
+      </div>
     </div>
 
-    <!-- 移动端 -->
-    <div class="md:hidden flex items-center gap-3">
-      <SearchModal />
-      <button
-        class="text-parchment p-2"
-        id="menu-toggle"
-        aria-label="打开菜单"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- 移动端菜单 -->
-  <div class="md:hidden hidden bg-sea-deep/95 backdrop-blur-md" id="mobile-menu">
-    <div class="px-6 py-4 flex flex-col gap-4">
-      {navItems.map(item => (
-        <a
-          href={item.href}
-          class:list={[
-            'font-heading text-base tracking-wider uppercase no-underline transition-colors duration-200',
-            currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href))
-              ? 'text-gold'
-              : 'text-mist-light hover:text-parchment',
-          ]}
-        >
-          {item.label}
+    <!-- 侧边栏/移动端菜单内容 -->
+    <div class="hidden lg:flex flex-col flex-1 w-full overflow-y-auto custom-scrollbar" id="mobile-menu">
+      <!-- 桌面端头部 -->
+      <div class="hidden lg:flex flex-col gap-6 p-6 pb-2">
+        <a href="/" class="flex items-center font-heading text-2xl text-parchment hover:text-bio-cyan transition-colors no-underline">
+          <span class="relative flex h-2 w-2 mr-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-bio-cyan opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-bio-cyan"></span>
+          </span>
+          Walker
         </a>
-      ))}
+        <div class="w-full">
+          <SearchModal />
+        </div>
+      </div>
+
+      <!-- 导航列表 -->
+      <div class="flex-1 py-4 px-4">
+        <div class="flex flex-col gap-1.5">
+          <div class="px-3 pb-2 text-[10px] font-mono text-parchment/30 uppercase tracking-widest hidden lg:block">全站导航</div>
+          {navItems.map(item => {
+            const isActive = currentPath === item.href || (item.href !== '/' && currentPath.startsWith(item.href));
+            return (
+              <div class="flex flex-col">
+                <a
+                  href={item.href}
+                  class:list={[
+                    'flex items-center gap-3 font-heading text-[15px] tracking-wider no-underline px-3 py-2.5 rounded-lg transition-colors duration-200 group',
+                    isActive
+                      ? 'text-bio-cyan bg-bio-cyan/[0.08]'
+                      : 'text-parchment/60 hover:text-parchment hover:bg-white/[0.04]',
+                  ]}
+                >
+                  <iconify-icon icon={item.icon} width="18" height="18" class={isActive ? 'text-bio-cyan' : 'text-parchment/40 group-hover:text-parchment/80 transition-colors'}></iconify-icon>
+                  {item.label}
+                </a>
+                {item.children && (
+                  <div class="flex flex-col gap-1 mt-1.5 ml-[22px] pl-4 border-l border-white/[0.06]">
+                    {item.children.map(child => (
+                      <a
+                        href={child.href}
+                        class="text-parchment/40 text-[13px] font-heading no-underline px-3 py-1.5 rounded-md hover:text-bio-cyan hover:bg-bio-cyan/[0.06] transition-colors"
+                      >
+                        {child.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      
+      <!-- 底部版权 (桌面侧边栏专有) -->
+      <div class="hidden lg:block p-6 mt-auto border-t border-white/[0.04]">
+        <p class="text-parchment/30 text-[11px] leading-relaxed tracking-wider mb-2">
+          行过万里水路，记录每一次停靠。
+        </p>
+        <div class="flex items-center gap-3 text-parchment/40">
+          <a href="/about" class="hover:text-bio-cyan transition-colors" aria-label="Mail"><iconify-icon icon="lucide:mail" width="14" height="14"></iconify-icon></a>
+          <a href="#" class="hover:text-bio-cyan transition-colors" aria-label="GitHub"><iconify-icon icon="lucide:github" width="14" height="14"></iconify-icon></a>
+          <a href="#" class="hover:text-bio-cyan transition-colors" aria-label="RSS"><iconify-icon icon="lucide:rss" width="14" height="14"></iconify-icon></a>
+        </div>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
+)}
 
 <script>
-  const nav = document.getElementById('main-nav');
   const toggle = document.getElementById('menu-toggle');
   const menu = document.getElementById('mobile-menu');
 
-  window.addEventListener('scroll', () => {
-    if (!nav) return;
-    if (window.scrollY > 80) {
-      nav.classList.add('bg-sea-deep/90', 'backdrop-blur-md');
-    } else {
-      nav.classList.remove('bg-sea-deep/90', 'backdrop-blur-md');
-    }
-  });
-
   toggle?.addEventListener('click', () => {
     menu?.classList.toggle('hidden');
+    menu?.classList.toggle('flex');
+    menu?.classList.toggle('bg-abyss/95');
+    menu?.classList.toggle('backdrop-blur-xl');
+    menu?.classList.toggle('absolute');
+    menu?.classList.toggle('top-full');
+    menu?.classList.toggle('left-0');
+    menu?.classList.toggle('right-0');
+    menu?.classList.toggle('border-b');
+    menu?.classList.toggle('border-white/[0.06]');
+    menu?.classList.toggle('max-h-[80vh]');
   });
 </script>
+
+<style>
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+</style>

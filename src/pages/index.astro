@@ -1,12 +1,129 @@
 ---
 import Base from '../layouts/Base.astro';
-import HeroVideo from '../components/HeroVideo.astro';
+import WalkerProfile from '../components/WalkerProfile.astro';
+import GreetingCard from '../components/GreetingCard.astro';
+import NavigationConsole from '../components/NavigationConsole.astro';
+import CalendarWidget from '../components/CalendarWidget.astro';
+import MusicPlayer from '../components/MusicPlayer.astro';
+import RandomRecommend from '../components/RandomRecommend.astro';
 import RecentTraces from '../components/RecentTraces.astro';
-import HarborAbout from '../components/HarborAbout.astro';
+import SearchModal from '../components/SearchModal.astro';
+import { getCollection } from 'astro:content';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const logs = (await getCollection('log', ({ data }) => data.published))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const latestPhoto = logs.find(l => l.data.type === 'photo');
+let coverUrl = "https://images.unsplash.com/photo-1551244072-5d12893278ab?q=80&w=800&auto=format&fit=crop";
+
+if (latestPhoto?.data.cover) {
+  // 防止本地 404 报错：先检查 public 目录下是否有这张图
+  const imgPath = path.join(process.cwd(), 'public', latestPhoto.data.cover);
+  if (fs.existsSync(imgPath)) {
+    coverUrl = latestPhoto.data.cover;
+  }
+}
 ---
-<Base title="Walker — 行过万里水路">
-  <HeroVideo />
-  <RecentTraces />
-  <HarborAbout />
-  <script src="../scripts/scroll-fade.ts"></script>
+
+<Base title="Walker — 行过万里水路" theme="nature">
+
+  <div class="max-w-[1200px] mx-auto px-4 md:px-6 pt-24 pb-20">
+
+    <!-- === 三栏 Bento Box 布局（lvyovo 风格） === -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[minmax(260px,280px)_minmax(300px,360px)_minmax(280px,350px)] justify-center gap-6 lg:gap-8 items-start">
+
+      <!-- ========================================= -->
+      <!-- 左栏：资料与导航 -->
+      <!-- ========================================= -->
+      <div class="flex flex-col gap-5 lg:gap-6">
+        <!-- 个人资料卡 + 导航菜单 -->
+        <div class="reveal">
+          <WalkerProfile />
+        </div>
+        
+        <!-- 近期文章 -->
+        <div class="reveal reveal-delay-1">
+          <RecentTraces logs={logs.slice(0, 4)} />
+        </div>
+      </div>
+
+      <!-- ========================================= -->
+      <!-- 中栏：问候与社交 -->
+      <!-- ========================================= -->
+      <div class="flex flex-col gap-5 lg:gap-6">
+        <!-- 顶部照片墙 动态展示 -->
+        <div class="panel-glass p-2 aspect-[4/3] flex items-center justify-center overflow-hidden reveal shadow-lg bg-abyss/40">
+           <img src={coverUrl} alt="Cover" onerror="this.src='https://images.unsplash.com/photo-1551244072-5d12893278ab?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover rounded-[20px] opacity-70 hover:opacity-100 transition-opacity duration-500" loading="eager" />
+        </div>
+
+        <!-- 问候卡 -->
+        <div class="reveal reveal-delay-1">
+          <GreetingCard />
+        </div>
+
+        <!-- 社交按钮 (胶囊型) -->
+        <div class="flex flex-wrap items-center justify-center gap-3 reveal reveal-delay-2">
+          <a href="https://space.bilibili.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#fb7299]/10 text-[#fb7299] border border-[#fb7299]/20 hover:bg-[#fb7299]/20 hover:border-[#fb7299]/40 transition-colors no-underline text-[13px] font-heading">
+            <iconify-icon icon="mingcute:bilibili-line" width="16" height="16"></iconify-icon>
+            哔哩哔哩
+          </a>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#ff2442]/10 text-[#ff2442] border border-[#ff2442]/20 hover:bg-[#ff2442]/20 hover:border-[#ff2442]/40 transition-colors no-underline text-[13px] font-heading">
+            <iconify-icon icon="lucide:book-heart" width="16" height="16"></iconify-icon>
+            小红书
+          </a>
+          <a href="https://github.com/AdgaiWalker" target="_blank" rel="noopener noreferrer" class="w-[38px] h-[38px] rounded-full bg-white/5 text-parchment border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-colors no-underline">
+            <iconify-icon icon="lucide:github" width="16" height="16"></iconify-icon>
+          </a>
+          <a href="mailto:contact@example.com" class="w-[38px] h-[38px] rounded-full bg-bio-cyan/10 text-bio-cyan border border-bio-cyan/20 flex items-center justify-center hover:bg-bio-cyan/20 hover:border-bio-cyan/30 transition-colors no-underline">
+            <iconify-icon icon="lucide:mail" width="16" height="16"></iconify-icon>
+          </a>
+        </div>
+
+        <!-- 随机推荐 -->
+        <div class="reveal reveal-delay-3">
+          <RandomRecommend />
+        </div>
+      </div>
+
+      <!-- ========================================= -->
+      <!-- 右栏：小组件 -->
+      <!-- ========================================= -->
+      <div class="flex flex-col gap-5 lg:gap-6">
+        <!-- 顶部操作按钮 -->
+        <div class="flex items-center gap-3 reveal">
+          <a href="/log" class="flex-1 panel-glass py-3.5 px-5 flex items-center justify-center gap-2 text-bio-cyan hover:bg-bio-cyan/10 transition-colors no-underline font-heading text-[15px] shadow-md border-bio-cyan/20">
+            <iconify-icon icon="lucide:book-open" width="16" height="16"></iconify-icon>
+            航海日志
+          </a>
+          <SearchModal iconOnly={true} />
+        </div>
+
+        <div class="reveal reveal-delay-1">
+          <NavigationConsole />
+        </div>
+
+        <!-- 日历 (移动端隐藏) -->
+        <div class="reveal reveal-delay-2 hidden md:block">
+          <CalendarWidget />
+        </div>
+
+        <!-- 音乐播放器 -->
+        <div class="reveal reveal-delay-3">
+          <MusicPlayer />
+        </div>
+        
+        <!-- 喜欢计数 (移动端隐藏) -->
+        <div class="panel-glass self-start px-5 py-2.5 items-center gap-2 reveal reveal-delay-4 shadow-md bg-abyss/40 border-coral/20 hidden md:flex">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-coral opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-coral"></span>
+          </span>
+          <span class="text-[13px] font-mono text-coral/90 tracking-widest pl-1">16888</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </Base>

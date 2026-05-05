@@ -3,6 +3,7 @@ title: 无题
 date: 2026-04-28
 tags: [随想]
 type: thought
+domain: ai-life
 published: true
 ---
 

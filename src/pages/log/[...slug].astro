@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import PromptBlock from '../../components/PromptBlock.astro';
 import DialogueBubble from '../../components/DialogueBubble.astro';
 import { getCollection, render } from 'astro:content';
+import { DOMAIN_LABELS } from '../../utils/domains';
 
 export async function getStaticPaths() {
   const entries = await getCollection('log', ({ data }) => data.published);
@@ -24,6 +25,10 @@ if (!entry) {
 const formatDate = (d: Date) =>
   d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
 
+const domainLabel = DOMAIN_LABELS[entry.data.domain] ?? '';
+const domainIcon = entry.data.domain === 'ai-exploration' ? 'lucide:compass' : 'lucide:waves';
+const backUrl = `/log?domain=${entry.data.domain}`;
+
 const rawBody = entry.body || '';
 const cleanBody = rawBody
   .replace(/^---[\s\S]*?---/, '')
@@ -33,56 +38,72 @@ const cleanBody = rawBody
   .trim();
 const description = cleanBody.slice(0, 160);
 ---
-<Base title={`${entry.data.title} — Walker`} description={description}>
-  <article class="max-w-3xl mx-auto px-6 pt-28 pb-20" data-pagefind-body>
-    <header class="mb-12">
-      <div class="flex items-center gap-3 mb-4 flex-wrap">
-        <time class="text-mist-light text-sm font-mono">{formatDate(entry.data.date)}</time>
-        <div class="flex gap-1.5">
-          {entry.data.tags.map(tag => (
-            <a
-              href={`/log?tag=${encodeURIComponent(tag)}`}
-              class:list={[
-                'text-xs px-2 py-0.5 rounded no-underline transition-colors',
-                tag === '哲学'
-                  ? 'bg-gold/20 text-gold hover:bg-gold/30'
-                  : 'bg-sea-light/30 text-mist-light hover:text-parchment',
-              ]}
-            >
-              {tag}
-            </a>
-          ))}
+<Base title={`${entry.data.title} — Walker`} description={description} pureMode={true}>
+  <div class="reading-mode min-h-screen">
+    <article class="max-w-3xl mx-auto px-6 pt-32 pb-24" data-pagefind-body>
+      <header class="mb-14">
+        <!-- 顶部元信息 -->
+        <div class="flex items-center gap-4 mb-6 text-[13px] font-mono tracking-wider text-slate-400">
+          <a href={backUrl} class="hover:text-blue-500 transition-colors no-underline">
+            {domainLabel}
+          </a>
+          <span>/</span>
+          <time>{formatDate(entry.data.date)}</time>
+          <div class="flex gap-2 ml-auto">
+            {entry.data.tags.map(tag => (
+              <span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[11px] uppercase tracking-tighter">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
+
+        <!-- 巨大的文章标题 -->
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900 leading-[1.1] mb-8" data-pagefind-meta="title">
+          {entry.data.title}
+        </h1>
+        
+        <!-- 引言部分 (模拟截图效果) -->
+        {entry.data.summary && (
+          <div class="text-xl text-slate-500 leading-relaxed font-light mb-12 italic border-l-4 border-slate-200 pl-6">
+            {entry.data.summary}
+          </div>
+        )}
+      </header>
+
+      <!-- 文章正文 - 清新排版 -->
+      <div class="prose prose-slate max-w-none 
+                  prose-p:text-lg prose-p:leading-8 prose-p:text-slate-700 
+                  prose-headings:text-slate-900 prose-headings:font-bold
+                  prose-strong:text-slate-900
+                  prose-blockquote:border-blue-500 prose-blockquote:bg-blue-50/30 prose-blockquote:py-1
+                  prose-code:bg-slate-100 prose-code:text-blue-600 prose-code:px-1 prose-code:rounded
+                  prose-img:rounded-2xl prose-img:shadow-xl">
+        <Content components={components} />
       </div>
-      <h1 class="font-heading text-3xl md:text-4xl text-parchment leading-tight" data-pagefind-meta="title">
-        {entry.data.title}
-      </h1>
-    </header>
 
-    {entry.data.type === 'photo' && entry.data.cover && (
-      <div class="mb-10 rounded-lg overflow-hidden">
-        <img src={entry.data.cover} alt={entry.data.title} class="w-full" loading="lazy" />
-      </div>
-    )}
-
-    <div class="prose prose-invert max-w-none
-                prose-headings:font-heading prose-headings:text-parchment
-                prose-p:text-parchment prose-p:leading-relaxed
-                prose-a:text-gold prose-a:no-underline hover:prose-a:text-gold-glow
-                prose-code:text-gold prose-code:bg-sea-deep prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
-                prose-pre:bg-sea-deep prose-pre:border prose-pre:border-mist/20
-                prose-blockquote:border-gold/40 prose-blockquote:text-parchment/70
-                prose-img:rounded-lg
-                prose-hr:border-mist/20
-                prose-strong:text-parchment
-                prose-li:text-parchment/85">
-      <Content components={components} />
-    </div>
-
-    <footer class="mt-16 pt-8 border-t border-mist/20">
-      <a href="/log" class="text-gold font-heading text-sm tracking-wider hover:text-gold-glow transition-colors no-underline">
-        ← 返回航海日志
-      </a>
-    </footer>
-  </article>
+      <footer class="mt-24 pt-12 border-t border-slate-100">
+        <a href={backUrl} class="text-slate-400 hover:text-blue-500 transition-colors no-underline flex items-center gap-2 text-sm font-medium">
+          <iconify-icon icon="lucide:arrow-left" width="16" height="16"></iconify-icon>
+          返回航海日志
+        </a>
+      </footer>
+    </article>
+  </div>
 </Base>
+
+<style is:global>
+  /* 在阅读模式下强制背景为护眼羊皮纸色 */
+  .reading-mode {
+    background-color: var(--reading-bg) !important;
+    color: var(--reading-text) !important;
+  }
+  
+  /* 隐藏阅读页的背景星空粒子，避免干扰 */
+  .reading-mode #ambient-particles,
+  .reading-mode .fixed {
+    display: none !important;
+  }
+</style>
+
+

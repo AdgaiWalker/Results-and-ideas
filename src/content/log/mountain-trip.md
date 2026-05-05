@@ -3,8 +3,9 @@ title: 黄山三日：在云海之上
 date: 2026-04-20
 tags: [旅行, 摄影]
 type: photo
+domain: ai-life
 published: true
-cover: /images/huangshan-cover.jpg
+cover: https://images.unsplash.com/photo-1551244072-5d12893278ab?q=80&w=800&auto=format&fit=crop
 ---
 
 四月的黄山，云海翻涌如同一片白色的海。

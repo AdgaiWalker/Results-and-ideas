@@ -1,0 +1,63 @@
+---
+interface Props {
+  name: string;
+  description: string;
+  category: string;
+  tags: string[];
+  rating?: number;
+  url?: string;
+}
+
+const { name, description, category, tags, rating, url } = Astro.props;
+
+const categoryConfig: Record<string, { label: string; icon: string; style: string }> = {
+  skill: { label: 'Skill', icon: 'lucide:wand-2', style: 'bg-bio-cyan/10 text-bio-cyan/80 border border-bio-cyan/20' },
+  tool: { label: '工具', icon: 'lucide:wrench', style: 'bg-gold/10 text-gold/80 border border-gold/20' },
+  'info-source': { label: '信息源', icon: 'lucide:radio', style: 'bg-coral/10 text-coral/80 border border-coral/20' },
+};
+
+const config = categoryConfig[category] ?? categoryConfig.tool;
+---
+<div class="panel-glass reveal">
+  <div class="p-5">
+    <div class="flex items-center justify-between mb-3">
+      <span class={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono ${config.style}`}>
+        <iconify-icon icon={config.icon} width="12" height="12"></iconify-icon>
+        {config.label}
+      </span>
+      {rating && (
+        <div class="flex gap-0.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <iconify-icon
+              icon="lucide:star"
+              width="12"
+              height="12"
+              class={i < rating ? 'text-gold/70' : 'text-white/[0.06]'}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+
+    <h3 class="text-parchment font-heading text-base mb-1.5">{name}</h3>
+    <p class="text-parchment/50 text-sm leading-relaxed mb-3">{description}</p>
+
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      {tags.map(tag => (
+        <span class="tag-pill">{tag}</span>
+      ))}
+    </div>
+
+    {url && (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 text-xs text-bio-cyan/50 hover:text-bio-cyan transition-colors no-underline"
+      >
+        <iconify-icon icon="lucide:external-link" width="12" height="12"></iconify-icon>
+        访问
+      </a>
+    )}
+  </div>
+</div>

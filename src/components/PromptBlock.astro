@@ -7,31 +7,24 @@ interface Props {
 const { title, tags = [] } = Astro.props;
 ---
 
-<div class="prompt-block my-6 rounded-xl border border-gold/20 bg-gold/5 overflow-hidden">
+<div class="prompt-block my-6 panel-glass border-l-2 border-l-gold/30 overflow-hidden">
   <!-- 头部 -->
-  <div class="flex items-center justify-between px-4 py-2.5 border-b border-gold/10 bg-gold/5">
-    <div class="flex items-center gap-2">
-      <svg class="w-3.5 h-3.5 text-gold/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="16 18 22 12 16 6"></polyline>
-        <polyline points="8 6 2 12 8 18"></polyline>
-      </svg>
-      <span class="text-gold/70 text-xs font-heading tracking-wider uppercase">Prompt</span>
-      {title && (
-        <span class="text-parchment/50 text-xs">— {title}</span>
-      )}
-    </div>
-    <div class="flex items-center gap-2">
+  <div class="panel-header">
+    <iconify-icon icon="lucide:terminal" width="14" height="14" class="text-gold/50"></iconify-icon>
+    PROMPT
+    {title && (
+      <span class="text-parchment/40 text-xs font-body normal-case tracking-normal">— {title}</span>
+    )}
+    <div class="ml-auto flex items-center gap-2">
       {tags.length > 0 && (
         <div class="flex gap-1">
           {tags.map(tag => (
-            <span class="text-xs px-1.5 py-0.5 rounded bg-sea-light/30 text-mist-light/60">
-              {tag}
-            </span>
+            <span class="tag-pill">{tag}</span>
           ))}
         </div>
       )}
       <button
-        class="copy-btn text-gold/40 hover:text-gold text-xs font-mono transition-colors cursor-pointer bg-transparent border-none"
+        class="copy-btn px-2 py-1 rounded bg-white/[0.06] text-xs text-parchment/40 hover:bg-white/[0.1] hover:text-parchment/60 cursor-pointer border-none transition-all font-mono"
         data-prompt-target="prompt-content"
       >
         复制
@@ -40,7 +33,7 @@ const { title, tags = [] } = Astro.props;
   </div>
 
   <!-- 提示词内容 -->
-  <div class="prompt-content px-5 py-4 text-parchment/80 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words">
+  <div class="prompt-content px-5 py-4 text-parchment/70 text-sm font-mono leading-relaxed whitespace-pre-wrap break-words">
     <slot />
   </div>
 </div>
@@ -55,10 +48,10 @@ const { title, tags = [] } = Astro.props;
       try {
         await navigator.clipboard.writeText(content);
         const original = btn.textContent;
-        btn.textContent = '已复制 ✓';
+        btn.textContent = '已复制';
         setTimeout(() => { btn.textContent = original; }, 2000);
       } catch {
-        btn.textContent = '复制失败';
+        btn.textContent = '失败';
       }
     });
   });
